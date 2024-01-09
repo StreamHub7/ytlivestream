@@ -8,8 +8,8 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-async function hlsUrl(ytUrl) {
-    return await fetch(ytUrl)
+async function hlsUrl(videoUrl) {
+    return await fetch(videoUrl)
       .then(async (r) => await r.text())
       .then((r) => r.match(/(?<=hlsManifestUrl":").*\.m3u8/g)[0]);
 }
@@ -18,20 +18,27 @@ app.get('/', (req, res) => {
     res.send('Youtube live streaming SERVER!');
 })
 
-app.get('/stream', async (req, res) => {
-    const id = req.query.id;
-    const channel = req.query.channel;
+async function ytUrl(channelId) {
+    const apiKey = process.env.API_KEY;
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${apiKey}`;
     try{
-        console.log(id);
-        const response = await fetch(`https://www.youtube.com/c/${channel}/live`);
-        if(response.status !== 200){
-            const hlsStreamUrl = await hlsUrl(`https://www.youtube.com/watch?v=${id}`);
-            res.status(200).redirect(hlsStreamUrl);
-        }
-        else{
-            const hlsStreamUrl = await hlsUrl(`https://www.youtube.com/c/${channel}/live`);
-            res.status(200).redirect(hlsStreamUrl);
-        }
+        const response = await fetch(url);
+        const data = await response.json();
+        return data.items[0].id.videoId;
+    }
+    catch(e){
+        console.log(e);
+    }
+}
+
+app.get('/stream', async (req, res) => {
+    const channelId = req.query.channelId;
+    console.log(channelId);
+    try{
+        const videoId = await ytUrl(channelId);
+        console.log(videoId);
+        const steamUrl = await hlsUrl(`https://www.youtube.com/watch?v=${videoId}`);
+        res.status(200).redirect(steamUrl);
     }
     catch(e){
         res.json({
