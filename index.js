@@ -32,18 +32,31 @@ async function ytUrl(channelId) {
 }
 
 app.get('/stream', async (req, res) => {
-    const channelId = req.query.channelId;
-    console.log(channelId);
-    try{
-        const videoId = await ytUrl(channelId);
-        console.log(videoId);
-        const steamUrl = await hlsUrl(`https://www.youtube.com/watch?v=${videoId}`);
-        res.status(200).redirect(steamUrl);
+    const channelId = req.query.id;
+    const channelName = req.query.ch;
+    if(channelId){
+        try{
+            const videoId = await ytUrl(channelId);
+            console.log(videoId);
+            const steamUrl = await hlsUrl(`https://www.youtube.com/watch?v=${videoId}`);
+            res.status(200).redirect(steamUrl);
+        }
+        catch(e){
+            res.json({
+                error: e
+            });
+        }
     }
-    catch(e){
-        res.json({
-            error: e
-        });
+    else{
+        try{
+            const steamUrl = await hlsUrl(`https://www.youtube.com/c/${channelName}/live`);
+            res.status(200).redirect(steamUrl);
+        }
+        catch(e){
+            res.json({
+                error: e
+            });
+        }
     }
 })
 
