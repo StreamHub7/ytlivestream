@@ -22,8 +22,9 @@ app.get('/stream', async (req, res) => {
     const id = req.query.id;
     const channel = req.query.channel;
     try{
-        const response = await fetch(`https://www.youtube.com/watch?v=${id}`);
-        if(response.status === 200){
+        console.log(id);
+        const response = await fetch(`https://www.youtube.com/c/${channel}/live`);
+        if(response.status !== 200){
             const hlsStreamUrl = await hlsUrl(`https://www.youtube.com/watch?v=${id}`);
             res.status(200).redirect(hlsStreamUrl);
         }
