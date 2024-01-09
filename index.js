@@ -51,7 +51,8 @@ app.get('/stream', async (req, res) => {
             res.status(200).redirect(steamUrl);
         }
         catch(e){
-            res.status(302).redirect("https://pub-c60f024d92cf4c0eb7d6f1f74d9c8a01.r2.dev/error-stream/output.m3u8");
+            if(channelName === "NirankariOrgUpdates") res.status(302).redirect("https://www.youtube.com/watch?v=QmQrR8rUaN0&t=1110s&ab_channel=SantNirankariMission");
+            else res.status(302).redirect("https://pub-c60f024d92cf4c0eb7d6f1f74d9c8a01.r2.dev/error-stream/output.m3u8");
         }
     }
 })
