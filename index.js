@@ -42,9 +42,7 @@ app.get('/stream', async (req, res) => {
             res.status(200).redirect(steamUrl);
         }
         catch(e){
-            res.json({
-                error: e
-            });
+            res.status(302).redirect("https://pub-c60f024d92cf4c0eb7d6f1f74d9c8a01.r2.dev/error-stream/output.m3u8");
         }
     }
     else{
@@ -53,9 +51,7 @@ app.get('/stream', async (req, res) => {
             res.status(200).redirect(steamUrl);
         }
         catch(e){
-            res.json({
-                error: e
-            });
+            res.status(302).redirect("https://pub-c60f024d92cf4c0eb7d6f1f74d9c8a01.r2.dev/error-stream/output.m3u8");
         }
     }
 })
