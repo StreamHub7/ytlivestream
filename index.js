@@ -85,17 +85,20 @@ app.get('/stream', async (req, res) => {
         }
         catch(e){
             if(channelName === "NirankariOrgUpdates"){
-                const startTimestamp = await extractStartTimestamp(`https://www.youtube.com/c/${channelName}/live`);
-                
-                if(startTimestamp){
-                    const start = new Date(startTimestamp);
-                    const now = new Date();
-                    if(now.getDate() <= start.getDate()){
-                        console.log("Program is Today!");
-                        res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/begain/output.m3u8");
+                try{
+                    const startTimestamp = await extractStartTimestamp(`https://www.youtube.com/c/${channelName}/live`);
+                    if(startTimestamp){
+                        const start = new Date(startTimestamp);
+                        const now = new Date();
+                        if(now.getDate() <= start.getDate()){
+                            console.log("Program is Today!");
+                            res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/begain/output.m3u8");
+                        }
                     }
                 }
-                else res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/end/output.m3u8");
+                catch(e){
+                    res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/end/output.m3u8");
+                } 
             }
             else res.status(302).redirect("https://pub-c60f024d92cf4c0eb7d6f1f74d9c8a01.r2.dev/error-stream/output.m3u8");
         }
