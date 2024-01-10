@@ -8,11 +8,44 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-async function hlsUrl(videoUrl) {
-    return await fetch(videoUrl)
-      .then(async (r) => await r.text())
-      .then((r) => r.match(/(?<=hlsManifestUrl":").*\.m3u8/g)[0]);
+
+
+async function extractStartTimestamp(videoUrl) {
+    try {
+        const response = await fetch(videoUrl);
+        const text = await response.text();
+        const timestampMatch = text.match(/"startTimestamp":"([^"]+)"/);
+
+        if (timestampMatch && timestampMatch[1]) {
+            const startTimestamp = timestampMatch[1];
+            return startTimestamp;
+        } else {
+            throw new Error('Start timestamp not found in the response.');
+        }
+    } catch (error) {
+        console.error('Error fetching or processing the video URL:', error);
+        throw error;
+    }
 }
+
+async function hlsUrl(videoUrl) {
+    try {
+        const response = await fetch(videoUrl);
+        const text = await response.text();
+        
+        const hlsManifestMatch = text.match(/"hlsManifestUrl":"([^"]+\.m3u8)"/);
+
+        if (hlsManifestMatch && hlsManifestMatch[1]) {
+            return hlsManifestMatch[1];
+        } else {
+            throw new Error('HLS manifest URL not found in the response.');
+        }
+    } catch (error) {
+        console.error('Error fetching or processing the video URL:', error);
+        throw error;
+    }
+}
+
 
 app.get('/', (req, res) => {
     res.send('Youtube live streaming SERVER!');
@@ -51,7 +84,15 @@ app.get('/stream', async (req, res) => {
             res.status(200).redirect(steamUrl);
         }
         catch(e){
-            if(channelName === "NirankariOrgUpdates") res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/ended.mp4");
+            if(channelName === "NirankariOrgUpdates"){
+                const startTimestamp = await extractStartTimestamp(`https://www.youtube.com/c/${channelName}/live`);
+                const now = new Date();
+                if(now.getDate() === new Date(startTimestamp).getDate()){
+                    console.log("Program is Today!");
+                    res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/begain/output.m3u8");
+                }
+                else res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/end/output.m3u8");
+            } 
             else res.status(302).redirect("https://pub-c60f024d92cf4c0eb7d6f1f74d9c8a01.r2.dev/error-stream/output.m3u8");
         }
     }
