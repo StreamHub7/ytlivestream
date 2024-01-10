@@ -20,10 +20,10 @@ async function extractStartTimestamp(videoUrl) {
             const startTimestamp = timestampMatch[1];
             return startTimestamp;
         } else {
-            return null;
+            throw new Error('Start timestamp not found in the response.');
         }
     } catch (error) {
-        console.error('Error fetching or processing the video URL:', error);
+        throw error;
     }
 }
 
@@ -37,10 +37,10 @@ async function hlsUrl(videoUrl) {
         if (hlsManifestMatch && hlsManifestMatch[1]) {
             return hlsManifestMatch[1];
         } else {
-            return null;
+            throw new Error('HLS manifest URL not found in the response.');
         }
     } catch (error) {
-        console.error('Error fetching or processing the video URL:', error);
+        throw error;
     }
 }
 
@@ -85,18 +85,16 @@ app.get('/stream', async (req, res) => {
             if(channelName === "NirankariOrgUpdates"){
                 try{
                     const startTimestamp = await extractStartTimestamp(`https://www.youtube.com/c/${channelName}/live`);
-                    if(startTimestamp){
-                        const start = new Date(startTimestamp);
-                        const now = new Date();
-                        if(now.getDate() == start.getDate()){
-                            console.log("Program is Today!");
-                            res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/begain/output.m3u8");
-                        }
+                    const now = new Date();
+                    if(now.getDate() === new Date(startTimestamp).getDate()){
+                        console.log("Program is Today!");
+                        res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/begain/output.m3u8");
                     }
+                    else res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/end/output.m3u8");
                 }
                 catch(e){
                     res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/end/output.m3u8");
-                } 
+                }
             }
             else res.status(302).redirect("https://pub-c60f024d92cf4c0eb7d6f1f74d9c8a01.r2.dev/error-stream/output.m3u8");
         }
