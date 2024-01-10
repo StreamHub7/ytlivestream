@@ -84,7 +84,6 @@ app.get('/stream', async (req, res) => {
             res.status(200).redirect(steamUrl);
         }
         catch(e){
-<<<<<<< HEAD
             if(channelName === "NirankariOrgUpdates"){
                 const startTimestamp = await extractStartTimestamp(`https://www.youtube.com/c/${channelName}/live`);
                 const now = new Date();
@@ -93,10 +92,7 @@ app.get('/stream', async (req, res) => {
                     res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/begain/output.m3u8");
                 }
                 else res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/end/output.m3u8");
-            } 
-=======
-            if(channelName === "NirankariOrgUpdates") res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snmlive/output.m3u8");
->>>>>>> fb25de455a96e666a957c1a453c374fd16fc8023
+            }
             else res.status(302).redirect("https://pub-c60f024d92cf4c0eb7d6f1f74d9c8a01.r2.dev/error-stream/output.m3u8");
         }
     }
