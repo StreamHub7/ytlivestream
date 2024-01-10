@@ -86,10 +86,14 @@ app.get('/stream', async (req, res) => {
         catch(e){
             if(channelName === "NirankariOrgUpdates"){
                 const startTimestamp = await extractStartTimestamp(`https://www.youtube.com/c/${channelName}/live`);
-                const now = new Date();
-                if(now.getDate() === new Date(startTimestamp).getDate()){
-                    console.log("Program is Today!");
-                    res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/begain/output.m3u8");
+                
+                if(startTimestamp){
+                    const start = new Date(startTimestamp);
+                    const now = new Date();
+                    if(now.getDate() <= start.getDate()){
+                        console.log("Program is Today!");
+                        res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/begain/output.m3u8");
+                    }
                 }
                 else res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/end/output.m3u8");
             }
