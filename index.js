@@ -20,11 +20,10 @@ async function extractStartTimestamp(videoUrl) {
             const startTimestamp = timestampMatch[1];
             return startTimestamp;
         } else {
-            throw new Error('Start timestamp not found in the response.');
+            return null;
         }
     } catch (error) {
         console.error('Error fetching or processing the video URL:', error);
-        throw error;
     }
 }
 
@@ -38,11 +37,10 @@ async function hlsUrl(videoUrl) {
         if (hlsManifestMatch && hlsManifestMatch[1]) {
             return hlsManifestMatch[1];
         } else {
-            throw new Error('HLS manifest URL not found in the response.');
+            return null;
         }
     } catch (error) {
         console.error('Error fetching or processing the video URL:', error);
-        throw error;
     }
 }
 
@@ -90,7 +88,7 @@ app.get('/stream', async (req, res) => {
                     if(startTimestamp){
                         const start = new Date(startTimestamp);
                         const now = new Date();
-                        if(now.getDate() <= start.getDate()){
+                        if(now.getDate() == start.getDate()){
                             console.log("Program is Today!");
                             res.status(302).redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/begain/output.m3u8");
                         }
