@@ -8,23 +8,6 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-
-
-async function extractStartTimestamp(videoUrl) {
-    try {
-        const response = await fetch(videoUrl);
-        const text = await response.text();
-        const timestampMatch = text.match(/"startTimestamp":"([^"]+)"/);
-
-        if (timestampMatch && timestampMatch[1]) {
-            const startTimestamp = timestampMatch[1];
-            return startTimestamp;
-        }
-    } catch (error) {
-        console.log(error);
-    }
-}
-
 async function hlsUrl(videoUrl) {
     try {
         const response = await fetch(videoUrl);
