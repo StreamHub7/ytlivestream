@@ -41,9 +41,43 @@ async function ytUrl(channelId) {
     }
 }
 
+function convertToIST(date) {
+  // Create a new DateTimeFormat object with timeZone set to 'Asia/Kolkata' (IST)
+  const istFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    hour12: false, // Use 24-hour format
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+
+  // Format the provided date to IST
+  const istDate = istFormatter.format(date);
+  return istDate;
+}
+
+async function extractStartTimestamp(videoUrl) {
+  try {
+      const response = await fetch(videoUrl);
+      const text = await response.text();
+      const timestampMatch = text.match(/"startTimestamp":"([^"]+)"/);
+
+      if (timestampMatch && timestampMatch[1]) {
+          const startTimestamp = timestampMatch[1];
+          return startTimestamp;
+      }
+  } catch (error) {
+      console.log(error);
+  }
+}
+
 app.get('/stream', async (req, res) => {
     const channelId = req.query.id;
     const channelName = req.query.ch;
+    const now = new Date(convertToIST(new Date()));
     if(channelId){
         try{
             const videoId = await ytUrl(channelId);
@@ -53,6 +87,41 @@ app.get('/stream', async (req, res) => {
         }
         catch(e){
             res.status(302).redirect("https://pub-c60f024d92cf4c0eb7d6f1f74d9c8a01.r2.dev/error-stream/output.m3u8");
+        }
+    }
+    else{
+        if(channelName === "NirankariOrgUpdates"){
+            try{
+                const steamUrl = await hlsUrl(`https://www.youtube.com/c/${channelName}/live`);
+                if(steamUrl){
+                    res.redirect(streamUrl);
+                }
+                else{
+                  const startTimestamp = await extractStartTimestamp(`https://www.youtube.com/c/${channelName}/live`);
+                  if(startTimestamp){
+                      const start =  new Date(startTimestamp);
+                      if(now.getDate() === start.getDate()){
+                        if(now.getHours() < start.getHours()){
+                          console.log("Program is Today!");
+                          res.redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/begain/output.m3u8");
+                        }
+                        else{
+                          if(start.getMinutes() - now.getMinutes() < 6){
+                            res.redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/just-start/output.m3u8");
+                          }
+                        }
+                      }
+                  }
+                  else {
+                    if(now.getDay()%2 !== 0) res.redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/master.m3u8");
+                    else res.redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/index.m3u8");
+                  }
+                }
+                
+            }
+            catch(e){
+              console.log((e));
+            }
         }
     }
 })
