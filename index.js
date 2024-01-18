@@ -28,19 +28,6 @@ app.get('/', (req, res) => {
     res.send('Youtube live streaming SERVER!');
 })
 
-async function ytUrl(channelId) {
-    const apiKey = process.env.API_KEY;
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${apiKey}`;
-    try{
-        const response = await fetch(url);
-        const data = await response.json();
-        return data.items[0].id.videoId;
-    }
-    catch(e){
-        console.log(e);
-    }
-}
-
 function convertToIST(date) {
   // Create a new DateTimeFormat object with timeZone set to 'Asia/Kolkata' (IST)
   const istFormatter = new Intl.DateTimeFormat('en-US', {
@@ -75,32 +62,19 @@ async function extractStartTimestamp(videoUrl) {
 }
 
 app.get('/stream', async (req, res) => {
-    const channelId = req.query.id;
     const channelName = req.query.ch;
     const now = new Date(convertToIST(new Date()));
-    if(channelId){
+    if(channelName === "NirankariOrgUpdates"){
         try{
-            const videoId = await ytUrl(channelId);
-            console.log(videoId);
-            const steamUrl = await hlsUrl(`https://www.youtube.com/watch?v=${videoId}`);
-            res.status(200).redirect(steamUrl);
-        }
-        catch(e){
-            res.status(302).redirect("https://pub-c60f024d92cf4c0eb7d6f1f74d9c8a01.r2.dev/error-stream/output.m3u8");
-        }
-    }
-    else{
-        if(channelName === "NirankariOrgUpdates"){
-            try{
-                const steamUrl = await hlsUrl(`https://www.youtube.com/c/${channelName}/live`);
-                if(steamUrl){
-                    res.redirect(streamUrl);
-                }
-                else{
-                  const startTimestamp = await extractStartTimestamp(`https://www.youtube.com/c/${channelName}/live`);
-                  if(startTimestamp){
-                      const start =  new Date(startTimestamp);
-                      if(now.getDate() === start.getDate()){
+            const steamUrl = await hlsUrl(`https://www.youtube.com/c/${channelName}/live`);
+            if(steamUrl){
+                res.redirect(streamUrl);
+            }
+            else{
+                const startTimestamp = await extractStartTimestamp(`https://www.youtube.com/c/${channelName}/live`);
+                if(startTimestamp){
+                    const start =  new Date(startTimestamp);
+                    if(now.getDate() === start.getDate()){
                         if(now.getHours() < start.getHours()){
                           console.log("Program is Today!");
                           res.redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/snm/begain/output.m3u8");
@@ -116,12 +90,22 @@ app.get('/stream', async (req, res) => {
                     if(now.getDay()%2 !== 0) res.redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/master.m3u8");
                     else res.redirect("https://pub-37350e103d1f4ccab85d6164397ea96d.r2.dev/index.m3u8");
                   }
-                }
+            }
                 
+        }
+        catch(e){
+            console.log((e));
+        }
+    }
+    else{
+        try{
+            const steamUrl = await hlsUrl(`https://www.youtube.com/c/${channelName}/live`);
+            if(steamUrl){
+                res.redirect(streamUrl);
             }
-            catch(e){
-              console.log((e));
-            }
+        }
+        catch(e){
+            console.log(e);
         }
     }
 })
